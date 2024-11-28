@@ -1,8 +1,11 @@
 # Libraries
 from tkinter import *
+from tkinter import messagebox
 from PIL import ImageTk
-from views.register import RegisterWindow
+from views import admin, products, register
 from utils.config import APP_TITLE, APP_BG, FONT_HEADING, FONT_MAIN
+from database.connection import connect_to_database
+import hashlib
 
 #================================================================
 class LoginWindow(Tk):
@@ -126,7 +129,7 @@ class LoginWindow(Tk):
                             bg="black",
                             activebackground="Slateblue1",
                             cursor='hand2',
-                            #command = Aqui se debe poner la accion de llevar a la página de inicio de sesión
+                            command = self.login
                             )
         self.login_btn.place(x=95, y=220)
         
@@ -166,8 +169,41 @@ class LoginWindow(Tk):
         def reopen_login_window():
             self.deiconify()
         
-        register_window = RegisterWindow(on_close_callback=reopen_login_window)
+        register_window = register.RegisterWindow(on_close_callback=reopen_login_window)
         register_window.protocol("WM_DELETE_WINDOW", reopen_login_window)
         register_window.mainloop()
     def on_register_close(self):
         self.deiconify()
+    
+    def login(self):
+        self.username = self.username_entry.get()
+        self.password = self.password_entry.get()
+        
+        hashed_password = hashlib.sha256(self.password.encode()).hexdigest()
+        
+        # Connect to the database
+        conn = connect_to_database()
+        cursor = conn.cursor()
+        
+        try:
+            # QUERY THAT HELPS TO THE LOGIN PAGE
+            cursor.execute(
+                "SELECT rol FROM users WHERE username=%s AND password=%s", (self.username, hashed_password)
+            )
+            self.resultado = cursor.fetchone()
+
+            # LOGIN LOGIC
+            if self.resultado:
+                rol = self.resultado[0]
+                if rol == 'admin':
+                    # Open admin window
+                    admin_window = admin.AdminWindow()
+                    admin_window.mainloop()
+                elif rol == 'client':
+                    #Open client window
+                    client_window = products.ProductsWindow()
+                    client_window.mainloop()
+            else:
+                messagebox.showerror("Error: Usuario o contraseña incorrecta")
+        finally:
+            conn.close()

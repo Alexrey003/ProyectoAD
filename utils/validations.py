@@ -1,6 +1,5 @@
 #LIBRARIES
 import re
-
 #============================================================================
 #VALIDATIONS FOR THE USER REGISTER
 def validate_name(name):
