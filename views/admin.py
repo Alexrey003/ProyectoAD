@@ -1,71 +1,146 @@
-# LIBRARIES
 from tkinter import *
-from PIL import ImageTk
-from utils.config import APP_TITLE, FONT_HEADING
+from tkinter import ttk
+from tkinter import messagebox
+from utils.config import APP_TITLE, FONT_HEADING, FONT_MAIN
+from database.connection import connect_to_database
 
-#===============================
-FONT_HEADING = ("Bahnschrift", 23, "bold")
-# Admin window class
+
 class AdminWindow(Toplevel):
      def __init__(self, *args, **kwargs):
           super().__init__(*args, **kwargs)
-          
-          self.screen_width = self.winfo_screenwidth()
-          self.screen_height = self.winfo_screenheight()
-          
-          self.window_width = int(self.screen_width * 0.8)
-          self.window_height = int(self.screen_height * 0.8)
-          
-          # WINDOWS PROPERTIES
-          self.title(APP_TITLE + "Modo administrator V1.0") #APP_TITLE
-          self.geometry("1000x650+180+30")
+     
+          self.title(APP_TITLE + " - Modo administrador V1.0")
+          self.geometry("1150x650+120+10")
           self.configure(bg="black")
           self.resizable(False, False)
-
-          # Load background image
-          try:
-               self.bg_image = ImageTk.PhotoImage(file="assets/adminbg.jpg")
-          except FileNotFoundError:
-               print("Background image not found!")
-
-               self.bg_image = None
-
-          if self.bg_image:
-               self.bg_label = Label(self, image=self.bg_image)
-               self.bg_label.pack(fill=BOTH, expand=True)
-          else:
-               self.configure(bg="gray")
-          
+     
           # ADMIN HEADING
           self.admin_heading = Label(
                self,
-               text="Modo administrator",
+               text="Modo administrador",
                font=FONT_HEADING,
                bg='gray60',
                fg='black'
           )
           self.admin_heading.place(x=1, y=20)
-          
-          # FRAME 1
-          self.frame_p1 = Frame(
+     
+          # FRAME CON SCROLL
+          self.scrollable_frame = Frame(
                self,
-               bg="white",
-               width=450,
+               bg="gray60",
+               width=1070,
                height=500,
                bd=10
           )
-          self.frame_p1.place(x=20, y=100)
-          
-          self.frame_p2 = Frame(
-               self,
-               bg="white",
-               width=450,
-               height=500,
-               bd=10
+          self.scrollable_frame.place(x=20, y=100)
+     
+          # Canvas para scroll
+          self.canvas = Canvas(
+               self.scrollable_frame,
+               bg="gray60",
+               width=1070,
+               height=500
           )
-          self.frame_p2.place(x=520, y=100)
+          self.scrollbar = Scrollbar(
+               self.scrollable_frame,
+               orient="vertical",
+               command=self.canvas.yview
+          )
+          self.scrollable_inner_frame = Frame(
+               self.canvas,
+               bg="gray60",
+               width=1070,
+          )
+     
+          # Configuración de la barra de desplazamiento
+          self.scrollable_inner_frame.bind(
+               "<Configure>",
+               lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+          )
+     
+          self.canvas.create_window((0, 0), window=self.scrollable_inner_frame, anchor="nw")
+          self.canvas.configure(yscrollcommand=self.scrollbar.set)
+          
+          self.canvas.pack(side="left", fill="both", expand=True)
+          self.scrollbar.pack(side="right", fill="y")
+          
+          # Cargar productos y dibujarlos
+          self.display_products()
 
+     def fetch_products(self):
+          conn = connect_to_database()
+          cursor = conn.cursor()
+          try:
+               cursor.execute("SELECT reference_code, brand, model, category, price, stock FROM products")
+               products = cursor.fetchall()
+               return products
+          except Exception as e:
+               messagebox.showerror("Error", f"No se pudieron recuperar los productos: {e}")
+               return []
+          finally:
+               cursor.close()
+               conn.close()
 
-if __name__ == "__main__":
-     app = AdminWindow()
-     app.mainloop()
+     def update_stock(self, reference_code):
+          conn = connect_to_database()
+          cursor = conn.cursor()
+          try:
+               cursor.execute("UPDATE products SET stock = stock + 1 WHERE reference_code = %s", (reference_code,))
+               conn.commit()
+               messagebox.showinfo("Éxito", "El stock ha sido actualizado correctamente.")
+               self.display_products()  # Redibujar productos
+          except Exception as e:
+               messagebox.showerror("Error", f"No se pudo actualizar el stock: {e}")
+          finally:
+               cursor.close()
+               conn.close()
+
+     def display_products(self):
+          for widget in self.scrollable_inner_frame.winfo_children():
+               widget.destroy()  # Limpiar el frame antes de redibujar
+
+          products = self.fetch_products()
+          if not products:
+               Label(
+                    self.scrollable_inner_frame,
+                    text="No hay productos disponibles.",
+                    font=FONT_MAIN,
+                    bg="gray60"
+               ).pack(pady=10)
+               return
+
+          for i, product in enumerate(products):
+               reference_code, brand, model, category, price, stock = product
+
+               # Crear frame para cada producto
+               product_frame = Frame(self.scrollable_inner_frame, bg="gray73", pady=5, padx=5, bd=1, relief="solid")
+               product_frame.pack(fill="x", pady=5)
+
+               # Etiqueta con la información del producto
+               product_label = Label(
+                    product_frame,
+                    text=(
+                         f"Referencia: {reference_code}\n"
+                         f"Marca: {brand}\n"
+                         f"Modelo: {model}\n"
+                         f"Categoría: {category}\n"
+                         f"Precio: ${price:.2f}\n"
+                         f"Stock: {stock}"
+                    ),
+                    font=FONT_MAIN,
+                    bg="gray73",
+                    anchor="w",
+                    justify=LEFT
+               )
+               product_label.pack(side="left", fill="x", expand=True, padx=10)
+
+               # Botón para agregar stock
+               add_stock_button = Button(
+                    product_frame,
+                    text="Agregar Stock",
+                    font=FONT_MAIN,
+                    bg="green",
+                    fg="white",
+                    command=lambda code=reference_code: self.update_stock(code)
+               )
+               add_stock_button.pack(side="right", padx=10)
