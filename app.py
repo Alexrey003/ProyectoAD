@@ -1,8 +1,11 @@
-#Libraries
-import tkinter as tk
+#======================================================================
+# MAIN LIBRARY
 from views.login import LoginWindow
+from views.admin import AdminWindow
+from views.register_product import RegisterProduct
 
-#Application startup
+#=====================================================================================
+# APPLICATION STARTUP
 if __name__ == "__main__":
     app = LoginWindow()
     app.mainloop()

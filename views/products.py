@@ -294,6 +294,6 @@ class ProductsWindow(Tk):
                 no_stock_label.pack(side="right", padx=10)
     
     def open_cart(self):
-
+        self.destroy()
         cart_window = ShoppingCartWindow(self.user_id)
         cart_window.mainloop()

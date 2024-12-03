@@ -5,19 +5,20 @@ from utils.config import APP_TITLE
 
 #================================================================
 class CheckOut(Tk):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, user_id, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+        self.user_id = user_id
+#===================================================================
         #WINDOWS PROPERTIES
         self.title(APP_TITLE + "Ventana de pago v1.5")
         self.geometry("800x650+180+50")
-        self.configure(bg="black")
+        self.configure(bg="MediumPurple4")
         self.resizable(False, False)
 #===================================================================
         #FRAME HEADING
         self.heading_frame = Frame(
             self,
-            bg="gray60",
+            bg="MediumPurple4",
             width=800,
             height=100
         )
@@ -26,18 +27,24 @@ class CheckOut(Tk):
         self.heading_title = Label(
             self.heading_frame,
             text="Ventana de pago",
-            fg="black",
-            font=('Bahnscrift', 23),
-            bg="gray63"
+            fg="white",
+            font=('Bahnscrift', 15, 'bold'),
+            bg="MediumPurple4"
         )
-        self.heading_title.place(x=10, y=50)
+        self.heading_title.place(x=50, y=10)
 #==================================================================
         #JUMPING OUT FROM DE CHECKOUT WINDOW BUTTON
         self.goback_btn = Button(
             self.heading_frame,
             text="Atras",
-            bg="gray70",
-            #command=
+            bg="MediumPurple3",
+            fg="white",
+            font=('Bahnscrift', 10),
+            bd=0,
+            relief="solid",
+            activebackground="SlateBlue1",
+            cursor="hand2",
+            command=self.go_back
         )
         self.goback_btn.place(x=10, y=10)
 #=================================================================
@@ -137,7 +144,9 @@ class CheckOut(Tk):
             bg="gray64"
         )
         self.ccv_entry.place(x=428, y=280)
-#==================================================================
-if __name__ == "__main__":
-    app = CheckOut()
-    app.mainloop()
+#=======  METHODS   ===========================================================
+    def go_back(self):
+        from views.shopping_cart import ShoppingCartWindow
+        self.destroy()
+        shopping_cart_window = ShoppingCartWindow(self.user_id)
+        shopping_cart_window.mainloop()

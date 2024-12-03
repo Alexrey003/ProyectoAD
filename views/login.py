@@ -200,12 +200,14 @@ class LoginWindow(Tk):
         self.deiconify()
     
     def login(self):
+        # GET THE USERNAME AND PASSWORD FROM THE ENTRIES
         self.username = self.username_entry.get()
         self.password = self.password_entry.get()
         
+        # HASH THE PASSWORD FOR SECURITY PURPOSES
         hashed_password = hashlib.sha256(self.password.encode()).hexdigest()
         
-        # Connect to the database
+        # CONNECT TO THE DATABASE
         conn = connect_to_database()
         cursor = conn.cursor()
         
@@ -216,15 +218,18 @@ class LoginWindow(Tk):
             )
             self.resultado = cursor.fetchone()
             
+            # LOGIC TO KNOW IF THE USER IS A CLIENT OR AN ADMIN
             if self.resultado:
                 user_id, rol = self.resultado
                 if rol == 'admin':
                     # OPEN ADMIN WINDOW
                     admin_window = admin.AdminWindow()
+                    self.destroy()
                     admin_window.mainloop()
                 elif rol == 'client':
                     # OPEN CLIENT WINDOW
                     client_window = products.ProductsWindow(user_id=user_id)
+                    self.destroy()
                     client_window.mainloop()
             else:
                 messagebox.showerror("Error: ", "Usuario o contraseña incorrecta")

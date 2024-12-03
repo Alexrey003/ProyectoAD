@@ -8,14 +8,14 @@ from PIL import Image, ImageTk
 
 #==============================================================================
 # SHOPPING CART APPLICATION
-class ShoppingCartWindow(Toplevel):
+class ShoppingCartWindow(Tk):
     def __init__(self, user_id, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user_id = user_id
 #==============================================================================
         # WINDOWS PROPERTIES
         self.title(APP_TITLE + "Carrito de compras v1.5")
-        self.geometry("1110x650+100+50")
+        self.geometry("1190x650+100+50")
         self.configure(bg="MediumPurple4")
         self.resizable(False, False)
         
@@ -39,6 +39,15 @@ class ShoppingCartWindow(Toplevel):
         )
         self.title_heading_label_2.place(x=1, y=40)
         
+        self.total_price_label = Label(
+            self,
+            text="Total: $0.00",
+            font=("Bahnschrift", 15, "bold"),
+            bg="MediumPurple4",
+            fg="white",
+        )
+        self.total_price_label.place(x=700, y=40)
+        
         # PROCEED TO PAYMENT BUTTON
         self.continue_btn = Button(
             self,
@@ -50,8 +59,9 @@ class ShoppingCartWindow(Toplevel):
             relief="solid",
             bd=0,
             cursor='hand2',
+            command=self.proceed_payment
         )
-        self.continue_btn.place(x=970, y=20)
+        self.continue_btn.place(x=870, y=40)
         
         # EXIT SHOPPING CART BUTTON
         self.exit_btn = Button(
@@ -66,13 +76,13 @@ class ShoppingCartWindow(Toplevel):
             cursor='hand2',
             command=self.go_back
         )
-        self.exit_btn.place(x=900, y=20)
+        self.exit_btn.place(x=1125, y=20)
 #===============================================================================
         # SHOPPING CART ITEMS
         self.product_base_frame = Frame(
             self,
             bg="gray20",
-            width=1065,
+            width=1150,
             height=550,
         )
         self.product_base_frame.place(x=10, y=80) #FRAME WHERE THE PRODUCTS ARE GOING TO BE WITH A USEFUL SCROLLBAR
@@ -80,7 +90,7 @@ class ShoppingCartWindow(Toplevel):
         self.canvas = Canvas(
             self.product_base_frame,
             bg="gray20",
-            width=1065,
+            width=1150,
             height=550,
         )
         self.scrollbar = Scrollbar(
@@ -91,7 +101,7 @@ class ShoppingCartWindow(Toplevel):
         self.scrollable_inner_frame = Frame(
             self.canvas,
             bg="gray20",
-            width=1065,
+            width=1150,
         )
         self.scrollable_inner_frame.bind(
             "<Configure>",
@@ -122,7 +132,8 @@ class ShoppingCartWindow(Toplevel):
                 JOIN products p ON sc.product_code = p.reference_code
                 WHERE sc.user_id = %s
                 """,(self.user_id,))
-            return cursor.fetchall()
+            rows = cursor.fetchall()
+            return rows
         except Exception as e:
             messagebox.showerror("Error:", f"No se pudieron recuperrar los productos del carrito: {e}")
             return []
@@ -143,10 +154,14 @@ class ShoppingCartWindow(Toplevel):
                 bg="gray20",
                 fg="white",
             ).pack(pady=10)
+            self.total_price_label.config(text="Total: $0.00")
             return
         
+        total_price = 0
         for item in cart_items:
             reference_code, brand, model, quantity, price, image = item
+            total_price += price * quantity
+            
             item_frame = Frame(
                 self.scrollable_inner_frame,
                 bg="gray19",
@@ -166,7 +181,7 @@ class ShoppingCartWindow(Toplevel):
             except Exception as e:
                 Label(item_frame, text="Imagen no disponible", bg="gray19", fg="white").pack(side="left", padx=10)
                 
-            detais = f"Marca: {brand}\nModelo: {model}\nCantidad: {quantity}\nPrecio: ${price:.2}"
+            detais = f"Marca: {brand}\nModelo: {model}\nCantidad: {quantity}\nPrecio: ${price:.2f}"
             Label(
                 item_frame,
                 text=detais,
@@ -187,6 +202,8 @@ class ShoppingCartWindow(Toplevel):
             )
             delete_btn.pack(side="right", padx=10)
             
+        
+        self.total_price_label.config(text=f"Total: ${total_price:.2f}")
     def remove_from_cart(self, product_code):
         conn = connect_to_database()
         cursor = conn.cursor()
@@ -209,4 +226,13 @@ class ShoppingCartWindow(Toplevel):
             conn.close()
     
     def go_back(self):
+        from views.products import ProductsWindow
         self.destroy()
+        product_window = ProductsWindow(self.user_id)
+        product_window.mainloop()
+    
+    def proceed_payment(self):
+        from views.checkout import CheckOut
+        self.destroy()
+        checkout_window = CheckOut(self.user_id)
+        checkout_window.mainloop()
