@@ -1,4 +1,4 @@
-#Library
+#Libraries
 import tkinter as tk
 from views.login import LoginWindow
 

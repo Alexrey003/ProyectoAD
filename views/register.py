@@ -1,197 +1,273 @@
+#============================================================================
 #Libraries
 from tkinter import *
 from PIL import ImageTk
-from utils.config import APP_TITLE, APP_BG, FONT_HEADING, FONT_MAIN
+from utils.config import APP_TITLE
 from controllers.auth_controller import register_user
 from tkinter import messagebox
 
 #============================================================================
+# REGISTER APPLICATION
 class RegisterWindow(Toplevel):
-# INTERFACE
     def __init__(self, on_close_callback=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
+#=============================================================================
         self.on_close_callback = on_close_callback
         
-        # Window properties
-        self.title(APP_TITLE + "Ventana registro v1.0")
-        self.geometry("500x670+120+20")
-        self.configure(bg=APP_BG)
+        # WINDOW PROPERTIES
+        self.title(APP_TITLE + "Ventana registro v1.5")
+        self.geometry("530x620+120+20")
+        self.configure(bg="MediumPurple4")
         self.resizable(False, False)
         
-        # Load background image
-        try:
-            self.bg_image = ImageTk.PhotoImage(file='assets/registerbg.jpg')
-        except FileNotFoundError:
-            print("Background image not found! Using default background color.")
-            self.bg_image = None
-        
-        if self.bg_image:
-            self.bg_label = Label(self, image=self.bg_image)
-            self.bg_label.pack(fill=BOTH, expand=True)
-        else:
-            self.configure(bg='gray')
-        
-        # Register heading
-        self.register_heading = Label(
+#=============================================================================
+        # REGISTER HEADING
+        # REGISTER TOP FRAME
+        self.register_top_frame = Frame(
             self,
-            text="Crea una cuenta",
-            font=FONT_HEADING,
-            bg='gray60',
-            fg='black',
+            bg="MediumPurple4",
+            width=500,
+            height=80
+        )
+        self.register_top_frame.pack(side="top")
+        
+        # REGISTER TITLE 
+        self.register_label = Label(
+            self,
+            text="Crea una cuenta.",
+            font=('Bahnscrift', 15, 'bold'),
+            bg='MediumPurple4',
+            fg='white',
             width=29
         )
-        self.register_heading.place(x=1, y=20)
+        self.register_label.place(x=-90, y=5)
         
-        # Entries fields
+        # REGISTER TOP LABEL 2
+        self.register_text = Label(
+            self,
+            text="Complete los siguientes campos para tener acceso a nuestro sito!",
+            font=('Bahnschrift', 10, 'bold'),
+            bg='MediumPurple4',
+            fg='white',
+            width=65
+        )
+        self.register_text.place(x=-35, y=45)
+#==============================================================================
+        #REGISTER FORM
+        #REGISTER FORM FRAME
+        self.register_form_frame = Frame(
+            self,
+            bg="gray20",
+            width=515,
+            height=530
+        )
+        self.register_form_frame.pack(side="top")
         
-        #Name field
+#==============================================================================
+        #NAME ITEMS
         self.name_label = Label(
             self,
             text="Nombre:",
-            font=("Bahnschrift", 15, 'bold'),
-            fg='black',
-            bg="gray73",
+            font=("Bahnschrift", 13, 'bold'),
+            fg='white',
+            bg="gray20",
         )
-        self.name_label.place(x=10, y=100)
+        self.name_label.place(x=20, y=95)
         
         self.name_entry = Entry(
             self,
             width=35,
-            font=FONT_MAIN,
-            fg="black",
-            bg="gray64"
+            font=('Bahnschrift', 12),
+            fg="white",
+            bg="gray19",
+            bd=0
         )
-        self.name_entry.place(x=15, y=135)
+        self.name_entry.place(x=93, y=99)
         
-        #Lastname field
+        self.name_frame = Frame(
+            self,
+            width=330,
+            height=2,
+            bg="MediumPurple3"
+        ).place(x=93, y=118)
+#==============================================================================
+        # LASTNAME ITEMS
         self.lastname_label = Label(
             self,
             text="Apellidos:",
-            font=("Bahnschrift", 15, 'bold'),
-            fg='black',
-            bg="gray73",
+            font=("Bahnschrift", 13, 'bold'),
+            fg='white',
+            bg="gray20",
         )
-        self.lastname_label.place(x=10, y=170)
+        self.lastname_label.place(x=20, y=150)
         
         self.lastname_entry = Entry(
             self,
             width=35,
-            font=FONT_MAIN,
-            fg="black",
-            bg="gray64"
+            font=('Bahnscrift', 12),
+            fg="white",
+            bg="gray19",
+            bd=0
         )
-        self.lastname_entry.place(x=15, y=205)
+        self.lastname_entry.place(x=99, y=154)
         
-        #Direction field
+        self.lastname_frame = Frame(
+            self,
+            width=330,
+            height=2,
+            bg="MediumPurple3"
+            ).place(x=99, y=174)
+#===============================================================================
+        # DIRECTION ITEMS
         self.direction_label = Label(
             self,
             text="Dirección:",
-            font=("Bahnschrift", 15, 'bold'),
-            fg='black',
-            bg="gray73",
+            font=("Bahnschrift", 13, 'bold'),
+            fg='white',
+            bg="gray20",
         )
-        self.direction_label.place(x=10, y=240)
+        self.direction_label.place(x=20, y=210)
         
         self.direction_entry = Entry(
             self,
             width=35,
-            font=FONT_MAIN,
-            fg="black",
-            bg="gray64"
+            font=('Bahnscrift', 12),
+            fg="white",
+            bg="gray19",
+            bd=0
         )
-        self.direction_entry.place(x=15, y=275)
+        self.direction_entry.place(x=101, y=210.5)
         
-        #Phone field
+        self.direction_frame = Frame(
+            self,
+            width=330,
+            height=2,
+            bg="MediumPurple3"
+        ).place(x=101, y=230)
+#===============================================================================
+        # PHONE ITEMS
         self.phone_label = Label(
             self,
             text="Teléfono:",
-            font=("Bahnschrift", 15, 'bold'),
-            fg='black',
-            bg="gray73",
+            font=("Bahnschrift", 13, 'bold'),
+            fg='white',
+            bg="gray20",
         )
-        self.phone_label.place(x=10, y=310)
+        self.phone_label.place(x=20, y=270)
         
         self.phone_entry = Entry(
             self,
             width=35,
-            font=FONT_MAIN,
-            fg="black",
-            bg="gray64"
+            font=('Bahsnachrift', 12),
+            fg="white",
+            bg="gray19",
+            bd=0
         )
-        self.phone_entry.place(x=15, y=345)
+        self.phone_entry.place(x=99, y=272)
         
+        self.phone_frame = Frame(
+            self,
+            width=330,
+            height=2,
+            bg="MediumPurple3"
+        ).place(x=99, y=292)
+#===================================================================================
         #Email field
         self.email_label = Label(
             self,
             text="Correo electrónico:",
-            font=("Bahnschrift", 15, 'bold'),
-            fg='black',
-            bg="gray73",
+            font=("Bahnschrift", 13, 'bold'),
+            fg='white',
+            bg="gray20",
         )
-        self.email_label.place(x=10, y=380)
+        self.email_label.place(x=20, y=335)
         
         self.email_entry = Entry(
             self,
             width=35,
-            font=FONT_MAIN,
-            fg="black",
-            bg="gray64"
+            font=('Bahsnachrift', 12),
+            fg="white",
+            bg="gray19",
+            bd=0
         )
-        self.email_entry.place(x=15, y=415)
+        self.email_entry.place(x=170, y=337)
         
+        self.email_frame = Frame(
+            self,
+            width=330,
+            height=2,
+            bg="MediumPurple3"
+        ).place(x=170, y=357)
+#===================================================================================
         #Username field
         self.username_label = Label(
             self,
             text="Nombre de usuario:",
-            font=("Bahnschrift", 15, 'bold'),
-            fg='black',
-            bg="gray73",
+            font=("Bahnschrift", 13, 'bold'),
+            fg='white',
+            bg="gray20",
         )
-        self.username_label.place(x=10, y=450)
+        self.username_label.place(x=20, y=400)
         
         self.username_entry = Entry(
             self,
             width=35,
-            font=FONT_MAIN,
-            fg="black",
-            bg="gray64"
+            font=('Bahsnachrift', 12),
+            fg="white",
+            bg="gray19",
+            bd=0
         )
-        self.username_entry.place(x=15, y=485)
+        self.username_entry.place(x=175, y=402)
         
+        self.username_frame = Frame(
+            self,
+            width=330,
+            height=2,
+            bg="MediumPurple3"
+        ).place(x=175, y=423)
+#===================================================================================
         #Password field
         self.password_label = Label(
             self,
             text="Contraseña:",
-            font=("Bahnschrift", 15, 'bold'),
-            fg='black',
-            bg="gray73",
+            font=("Bahnschrift", 13, 'bold'),
+            fg='white',
+            bg="gray20",
         )
-        self.password_label.place(x=10, y=520)
+        self.password_label.place(x=20, y=460)
         
         self.password_entry = Entry(
             self,
             width=35,
-            font=FONT_MAIN,
-            fg="black",
-            bg="gray64",
+            font=('Bahsnachrift', 12),
+            fg="white",
+            bg="gray19",
+            bd=0
         )
-        self.password_entry.place(x=15, y=555)
+        self.password_entry.place(x=119, y=462)
         
+        self.password_frame = Frame(
+            self,
+            width=330,
+            height=2,
+            bg="MediumPurple3"
+        ).place(x=119, y=483)
+#===================================================================================
         #Sent button
         self.sent_btn = Button(
             self,
             text="Enviar",
-            font=("Bahnschrift", 15, 'bold'),
-            fg='black',
-            bg='gray60',
-            width=25,
-            command= self.on_register_complete
+            font=("Bahnschrift", 13, 'bold'),
+            fg='white',
+            bg='MediumPurple3',
+            activebackground="SlateBlue1",
+            command= self.on_register_complete,
+            width=20
         )
-        self.sent_btn.place(x=100, y=600)
+        self.sent_btn.place(x=165, y=520)
     
-#======================================================================
-# METHODS
+#========== METHODS ============================================================
     def on_register_complete(self):
         try:
             # Proceed with registration

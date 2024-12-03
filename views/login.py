@@ -1,139 +1,163 @@
+#======================================================================================
 # Libraries
 from tkinter import *
 from tkinter import messagebox
 from PIL import ImageTk
 from views import admin, products, register
-from utils.config import APP_TITLE, APP_BG, FONT_HEADING, FONT_MAIN
+from utils.config import APP_TITLE
 from database.connection import connect_to_database
 import hashlib
 
-#================================================================
+#=====================================================================================
+#LOGING APPLICATION
 class LoginWindow(Tk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # Set window properties
-        self.title(APP_TITLE + "Ventana Inicio v1.0")
-        self.configure(bg=APP_BG)
+        
+#======================================================================================
+        # WINDOW PROPERTIES
+        self.title(APP_TITLE + "Ventana Inicio v1.5")
+        self.geometry("550x350+200+100")
+        self.configure(bg="MediumPurple4")
         self.resizable(False, False)
-
-        # Load background image
-        try:
-            self.bg_image = ImageTk.PhotoImage(file='assets/bg.jpg')
-        except FileNotFoundError:
-            print("Background image not found! Using fallback color.")
-            self.bg_image = None
-
-        if self.bg_image:
-            self.bg_label = Label(self, image=self.bg_image)
-            self.bg_label.pack(fill=BOTH, expand=True)
-        else:
-            self.configure(bg="gray")
-
-        # Login label heading
+        
+#======================================================================================
+        # LOGIN HEADING
         self.heading = Label(
             self,
-            text="Inicio sesión",
-            font=FONT_HEADING,
-            bg="gray1",
-            fg="SlateBlue1"
+            text="Inicio sesión.",
+            font=('Bahnscrift', 15, 'bold'),
+            bg="MediumPurple4",
+            fg="white"
         )
-        self.heading.place(x=20, y=20)
+        self.heading.pack(side="top")
+        
+#======================================================================================
+        # FRAME WHERE THE ITEMS ARE GONNA BE
+        self.login_frame = Frame(
+            self,
+            bg="gray20",
+            width=530,
+            height=300,
+            bd=10
+        )
+        self.login_frame.pack(side="top")
 
-        # Entry for username
+#======================================================================================
+        #LOGIN TITLE 2
+        self.login_title_2 = Label(
+            self,
+            text="Ingrese sus credenciales:",
+            font=('Bahnscrift', 13, 'bold'),
+            bg="gray20",
+            fg="white"
+        )
+        self.login_title_2.place(x=176, y=31)
+        
+#======================================================================================
+        # USERNAME ITEMS
+        # USERNAME ENTRY
         self.username_entry = Entry(
             self,
             width=25,
-            font=FONT_MAIN,
-            fg="dark slate blue",
-            bg="gray1",
+            font=('Bahnscrift', 12),
+            fg="White",
+            bg="gray19",
             bd=0
         )
-        self.username_entry.place(x=20, y=80)
+        self.username_entry.place(x=150, y=80)
         self.username_entry.insert(0, "Nombre de usuario")
 
-        # Bind events for placeholder handling
+        # BIND ENVENTS FOR PLACEHOLDER HANDLING
         self.username_entry.bind("<FocusIn>", self.on_focus_in_username)
         self.username_entry.bind("<FocusOut>", self.on_focus_out_username)
         
         self.username_frame = Frame(self,
                                     width=250,
                                     height=2,
-                                    bg="Slateblue1").place(x=20, y=101)
+                                    bg="MediumPurple3").place(x=150, y=101)
         
-        #Entry password
+#======================================================================================
+        # PASSWORD ENTRY
         self.password_entry = Entry(
             self,
             width=25,
-            font=FONT_MAIN,
-            fg="dark slate blue",
-            bg="gray1",
+            font=('Bahnscrift', 12),
+            fg="white",
+            bg="gray19",
             bd=0
         )
-        self.password_entry.place(x=20, y=150)
+        self.password_entry.place(x=150, y=150)
         self.password_entry.insert(0, "Contraseña")
 
-        # Bind events for placeholder handling
+        # BIND EVENTS FOR PLACEHOLDER HANDLING
         self.password_entry.bind("<FocusIn>", self.on_focus_in_password)
         self.password_entry.bind("<FocusOut>", self.on_focus_out_password)
         
         self.password_frame = Frame(self,
                                     width=250,
                                     height=2,
-                                    bg="Slateblue1").place(x=20, y=171)
+                                    bg="MediumPurple3").place(x=150, y=171)
         
-        # Eye Buttons
+        # EYE BUTTON
         self.openeye = PhotoImage(file='assets/openeye.png')
         
         self.eye_btn = Button(self,
                             image=self.openeye,
                             bd=0,
-                            bg="black",
+                            bg="gray19",
                             activebackground="Slateblue1",
                             cursor='hand2',
                             command=self.hide
                             )
-        self.eye_btn.place(x=245, y=148)
+        self.eye_btn.place(x=375, y=148)
         
+#=====================================================================================
         #Forget Button
         self.forget_btn = Button(self,
                             text="¿Olvidaste tu contraseña?",
-                            font=FONT_MAIN,
-                            fg="SlateBlue1",
+                            font=('Bahnscrift', 13),
+                            fg="white",
                             bd=0,
-                            bg="black",
+                            bg="MediumPurple3",
                             activebackground="Slateblue1",
-                            cursor='hand2'
+                            cursor='hand2',
+                            relief="solid"
                             #command = Aqui se debe poner la accion de llevar a la página de olvidar contraseña
                             )
-        self.forget_btn.place(x=20, y=180)
+        self.forget_btn.place(x=40, y=270)
         
+#====================================================================================
         #Register Button
         self.register_btn = Button(self,
                                 text='Registrate',
-                                font=FONT_MAIN,
-                                fg="SlateBlue1",
+                                font=('Bahnscrift', 13),
+                                fg="white",
                                 bd=0,
-                                bg="black",
+                                bg="MediumPurple3",
                                 cursor='hand2',
                                 activebackground="Slateblue1",
-                                command= self.open_register_window
+                                command= self.open_register_window,
+                                relief="solid"
                                 )
-        self.register_btn.place(x=250, y=180)
+        self.register_btn.place(x=330, y=270)
         
+#=====================================================================================
         #Login Button
         self.login_btn = Button(self,
                             text='Iniciar Sesión',
-                            font=("Bahnschrift",15, 'bold'),
-                            fg="SlateBlue1",
-                            bg="black",
+                            font=("Bahnschrift", 13, 'bold'),
+                            fg="white",
+                            bg="MediumPurple3",
                             activebackground="Slateblue1",
                             cursor='hand2',
-                            command = self.login
+                            command = self.login,
+                            relief="solid",
+                            bd=0
                             )
-        self.login_btn.place(x=95, y=220)
+        self.login_btn.place(x=215, y=200)
         
-#=====================================================================================
+#=======  METHODS  ==============================================================================
     # Placeholder logic for username
     def on_focus_in_username(self, event):
         if self.username_entry.get() == "Nombre de usuario":
@@ -188,22 +212,24 @@ class LoginWindow(Tk):
         try:
             # QUERY THAT HELPS TO THE LOGIN PAGE
             cursor.execute(
-                "SELECT rol FROM users WHERE username=%s AND password=%s", (self.username, hashed_password)
+                "SELECT user_id, rol FROM users WHERE username=%s AND password=%s", (self.username, hashed_password)
             )
             self.resultado = cursor.fetchone()
-
-            # LOGIN LOGIC
+            
             if self.resultado:
-                rol = self.resultado[0]
+                user_id, rol = self.resultado
                 if rol == 'admin':
-                    # Open admin window
+                    # OPEN ADMIN WINDOW
                     admin_window = admin.AdminWindow()
                     admin_window.mainloop()
                 elif rol == 'client':
-                    #Open client window
-                    client_window = products.ProductsWindow()
+                    # OPEN CLIENT WINDOW
+                    client_window = products.ProductsWindow(user_id=user_id)
                     client_window.mainloop()
             else:
-                messagebox.showerror("Error: Usuario o contraseña incorrecta")
+                messagebox.showerror("Error: ", "Usuario o contraseña incorrecta")
+        except Exception as e:
+            messagebox.showerror("Error:", f"Error al iniciar sesion {e}")
         finally:
             conn.close()
+            cursor.close()

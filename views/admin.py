@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
-from utils.config import APP_TITLE, FONT_HEADING, FONT_MAIN
+from utils.config import APP_TITLE
 from database.connection import connect_to_database
 
 
@@ -9,7 +9,7 @@ class AdminWindow(Toplevel):
      def __init__(self, *args, **kwargs):
           super().__init__(*args, **kwargs)
      
-          self.title(APP_TITLE + " - Modo administrador V1.0")
+          self.title(APP_TITLE + " - Modo administrador V1.5")
           self.geometry("1150x650+120+10")
           self.configure(bg="black")
           self.resizable(False, False)
@@ -18,7 +18,7 @@ class AdminWindow(Toplevel):
           self.admin_heading = Label(
                self,
                text="Modo administrador",
-               font=FONT_HEADING,
+               font=('Bahscrift', 15, 'bold'),
                bg='gray60',
                fg='black'
           )
@@ -104,7 +104,7 @@ class AdminWindow(Toplevel):
                Label(
                     self.scrollable_inner_frame,
                     text="No hay productos disponibles.",
-                    font=FONT_MAIN,
+                    font=('Bahnscrift', 13),
                     bg="gray60"
                ).pack(pady=10)
                return
@@ -127,7 +127,7 @@ class AdminWindow(Toplevel):
                          f"Precio: ${price:.2f}\n"
                          f"Stock: {stock}"
                     ),
-                    font=FONT_MAIN,
+                    font=('Bahnscrift', 13),
                     bg="gray73",
                     anchor="w",
                     justify=LEFT
@@ -138,7 +138,7 @@ class AdminWindow(Toplevel):
                add_stock_button = Button(
                     product_frame,
                     text="Agregar Stock",
-                    font=FONT_MAIN,
+                    font=('Bahnscrift', 13),
                     bg="green",
                     fg="white",
                     command=lambda code=reference_code: self.update_stock(code)
