@@ -59,7 +59,7 @@ class AdminWindow(Tk):
                activebackground="Slateblue1",
                cursor="hand2",
                font=('Bahnschrift', 13, 'bold'),
-               #command=
+               command=self.add_products_interface
           )
           self.register_product_btn.place(x=950, y=10)
           
@@ -187,3 +187,8 @@ class AdminWindow(Tk):
                     command=lambda code=reference_code: self.update_stock(code)
                )
                add_stock_button.pack(side="right", padx=10)
+     
+     def add_products_interface(self):
+          self.destroy()
+          from views.register_product import main
+          main()

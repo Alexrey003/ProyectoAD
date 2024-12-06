@@ -23,7 +23,7 @@ class Products():
         cursor = self.conn.cursor()
         
         query = '''
-        SELECY * FROM products
+        SELECT * FROM products
         '''
         
         cursor.execute(query)
@@ -34,7 +34,9 @@ class Products():
         cursor = self.conn.cursor()
         
         query = '''
-        SELECT * FROM products WHERE brand = %s OR model = %s
+        SELECT *
+        FROM products
+        WHERE brand = %s OR model = %s
         '''
         cursor.execute(query, (brand, model))
         product = cursor.fetchall()
