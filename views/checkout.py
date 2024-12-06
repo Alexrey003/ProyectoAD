@@ -12,8 +12,11 @@ import datetime
 class CheckOut(Tk):
     def __init__(self, user_id, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
         self.conn = connect_to_database()
         self.user_id = user_id
+        
+        # FETCH USER INFORMATION
         cursor = self.conn.cursor()
         cursor.execute(
             """
@@ -209,7 +212,8 @@ class CheckOut(Tk):
             font=("Bahnscrift", 13, 'bold')
         )
         self.user_info_label.place(x=10, y=310)
-
+        
+        # USER NAME LABEL
         self.name_label = Label(
             self,
             text=f"Nombre: {self.user_info['name']} {self.user_info['lastname']}",
@@ -218,7 +222,8 @@ class CheckOut(Tk):
             font=("Bahnscrift", 13, 'bold')
         )
         self.name_label.place(x=15, y=350)
-
+        
+        # PHONE LABEL
         self.phone_label = Label(
             self,
             text=f"Telefono: {self.user_info['phone']}",
@@ -227,7 +232,8 @@ class CheckOut(Tk):
             font=("Bahnscrift", 13, 'bold')
         )
         self.phone_label.place(x=15, y=400)
-
+        
+        # DIRECTION LABEL
         self.direction_label = Label(
             self,
             text=f"Direcciòn: {self.user_info['direction']}",
@@ -236,8 +242,19 @@ class CheckOut(Tk):
             font=("Bahnscrift", 13, 'bold')
         )
         self.direction_label.place(x=15, y=450)
-
-        # ACCEPT BUTTON
+        
+        #TOTAL PRICE LABEL
+        self.total_price_label = Label(
+            self,
+            text="Total a pagar: $0.00",
+            font=("Bahnscrift", 13, 'bold'),
+            bg="gray19",
+            fg="white"
+        )
+        self.total_price_label.place(x=15, y=500)
+        
+#=======================================================================================================
+        # CONFIRM PURCHASE BUTTON
         self.proceed_btn = Button(
             self,
             text="Confirmar pago",
@@ -248,13 +265,15 @@ class CheckOut(Tk):
             relief="solid",
             activebackground="SlateBlue1",
             cursor="hand2",
+            command= self.confirm_purchase
         )
-        self.proceed_btn.place(x=460, y=550)
+        self.proceed_btn.place(x=600, y=550)
 
+        # SUBMIT CARD BUTTON
         self.submit_card =  Button(
             self,
             text="Añadir tarjeta",
-            font=('Bahnscrift', 13, 'bold'),
+            font=('Bahnscrift', 14, 'bold'),
             bg="MediumPurple3",
             fg="white",
             bd=0,
@@ -263,25 +282,59 @@ class CheckOut(Tk):
             cursor="hand2",
             command=self.linking_card
         )
-        self.submit_card.place(x=250, y=550)
+        self.submit_card.place(x=450, y=552)
+        
+        self.saved_cards_var = StringVar()
+        self.saved_cards_menu = ttk.Combobox(
+            self,
+            textvariable=self.saved_cards_var,
+            values=[],
+            state="readonly",
+            width=40,
+            font=('Bahnscrift', 14, 'bold')
+        )
+        self.saved_cards_menu.place(x=10, y=105)
+        self.saved_cards_menu.set('Selecciona una tarjeta')
+        self.load_saved_cards()
+        
+        self.populate_btn = Button(
+            self,
+            text="Usar tarjeta seleccionada",
+            font=('Bahnscrift', 13, 'bold'),
+            bg="MediumPurple3",
+            fg="white",
+            bd=0,
+            relief="solid",
+            activebackground="SlateBlue1",
+            cursor="hand2",
+            command=self.populate_card_details
+        )
+        self.populate_btn.place(x=490, y=105)
+        
 #=======  METHODS   ===========================================================
+    #METHOD TO GO BACK TO THE SHOPPING-CART WINDOW
     def go_back(self):
         from views.shopping_cart import ShoppingCartWindow
         self.destroy()
         shopping_cart_window = ShoppingCartWindow(self.user_id)
         shopping_cart_window.mainloop()
-    
+
+#================================================================================
+    #METHOD THAT SAVE THE DATA OF THE CARD IN THE DATABASE
     def linking_card(self):
         try:
+            # GETTING THE MONTH AND YEAR FROM THE COMBOBOX
             selected_month = self.expiration_month_var.get()
             selected_year = self.expiration_year_var.get()
             
+            # VALIDATION OF THE MONTH AND YEAR
             if selected_month == 'MM' or selected_year == 'YY':
                 messagebox.showerror("Error", "Por favor, seleccione la fecha de expiración.")
                 return
             
-            expiration_date = f"{selected_month}/{selected_year}"
+            expiration_date = f"{selected_month}/{selected_year}" #SAVING IN A VARIABLE THE MONTH AND YEAR
             
+            #GETTING TE REST OF THE DATA OF THE CARD
             result = register_card(
                 self.user_id,
                 self.card_number_entry.get(),
@@ -289,9 +342,198 @@ class CheckOut(Tk):
                 expiration_date,
                 self.ccv_entry.get()
             )
+            
+            # IF THE CARD WAS REGISTERED CORRECTLY, SHOWING AN INFORMATION MESSAGE
             if "correctamente" in result:
                 messagebox.showinfo("Exito", result)
             else:
                 messagebox.showerror("Error", result)
         except Exception as e:
             messagebox.showerror("Error", f"Error inesperado: {e}")
+    
+#=========================================================================================
+    def create_bill (self, sale_id):
+        #LIBRARIES
+        from reportlab.lib.pagesizes import letter
+        from reportlab.pdfgen import canvas
+        from reportlab.platypus import Table
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        import sys
+        import os
+
+        try:
+            cursor = self.conn.cursor() #CURSOR FOR THE DATABASE
+            
+            #QUERY THAT SELECT THE INFORMATION FOR THE BILL
+            cursor.execute(
+                """
+                SELECT s.sale_date, s.total_amount, c.card_number, u.name, u.lastname, u.direction
+                FROM sales s
+                INNER JOIN cards c ON s.card_id = c.card_id
+                INNER JOIN users u ON s.user_id = u.user_id
+                WHERE s.sale_id = %s
+                """, (sale_id,)
+            )
+            sale_info = cursor.fetchone()
+            
+            if not sale_info:
+                messagebox.showerror("Error", "No se encontro información de la venta")
+                return
+            
+            sale_date, total_amount, card_number, name, lastname, direction = sale_info
+            
+            cursor.execute(
+                """
+                SELECT p.brand, p.model, sd.quantity, sd.subtotal
+                FROM sale_details sd
+                INNER JOIN products p ON sd.product_code= p.reference_code
+                WHERE sd.sale_id = %s
+                """, (sale_id,)
+            )
+            sale_details = cursor.fetchall()
+            
+            if not sale_details:
+                messagebox.showerror("Error", "No se encontro información de los detalles de la venta")
+                return
+            
+            products = [["Producto", "Modelo", "Cantidad", "Subtotal"]]
+            for brand, model, quantity, subtotal in sale_details:
+                products.append([brand, model, quantity, f"{subtotal:.2f}"])
+            
+            pdf_file = f"bills/factura_{sale_id}.pdf"
+            c = canvas.Canvas(pdf_file, pagesize=letter)
+            width, height = letter
+            
+            c.setFont('Helvetica-Bold', 16)
+            c.drawString(100, height - 50, f"Factura #{sale_id}")
+            c.drawString(100, height - 70, f"Fecha: {sale_date}")
+            c.drawString(100, height - 100, f"Cliente: {name} {lastname}")
+            c.drawString(100, height - 120, f"Dirección: {direction}")
+            c.drawString(100, height - 140, f"Tarjeta: **** **** **** {card_number[-4:]}")
+            
+            table = Table(products, colWidths=[20, 200, 50, 50])
+            table.wrapOn(c, width, height)
+            table.drawOn(c, 50, height - 300)
+            
+            c.drawString(50, height - 350, f"Total a pagar: ${total_amount:.2f}")
+            c.drawString(50, height - 400, "Gracias por su compra.")
+            
+            c.save()
+            
+            cursor.execute(
+                """
+                UPDATE sales SET bill_file = %s WHERE sale_id = %s;
+                """, (pdf_file, sale_id)
+            )
+            self.conn.commit()
+            
+            messagebox.showinfo("Factura generada", f"La factura #{sale_id} se ha generado correctamente")
+            os.startfile(os.path.abspath(pdf_file))
+        except Exception as e:
+            messagebox.showerror("Error", f"Error inesperado al generar la factura: {e}")
+        finally:
+            cursor.close()
+#=====================================================================================================================
+    def load_saved_cards(self):
+        try:
+            cursor = self.conn.cursor()
+            
+            cursor.execute(
+                """
+                SELECT card_id, card_number, cardholder_name, expiration_date
+                FROM cards
+                WHERE user_id = %s
+                """, (self.user_id,)
+            )
+            saved_cards = cursor.fetchall()
+            
+            self.saved_cards_menu['values'] = [
+                f"{card_id} - **** **** **** {card_number[-4:]} - {cardholder_name} - {expiration_date}"
+                for card_id, card_number, cardholder_name, expiration_date in saved_cards
+            ]
+        except Exception as e:
+            messagebox.showerror("Error", f"Error inesperado al cargar las tarjetas guardadas: {e}")
+        finally:
+            cursor.close()
+        
+    def populate_card_details(self):
+        selected_card = self.saved_cards_var.get()
+        if selected_card:
+            parts = selected_card.split(' - ')
+            if len(parts) == 4:
+                card_id, _, cardholder_name, expiration_date = parts
+                self.selected_card_id = int(card_id)
+                messagebox.showinfo(
+                    "Tarjeta seleccionada",
+                    f"Tarjeta seleccionada: {cardholder_name}, Exp: {expiration_date}"
+                )
+            else:
+                messagebox.showerror("Error", "Error al extraer los datos de la tarjeta")            
+    def confirm_purchase(self):
+        if hasattr(self, 'selected_card_id'):
+            self.make_purchase(self.selected_card_id)
+        else:
+            messagebox.showerror("Error", "Por favor, seleccione una tarjeta para la compra")
+            
+    def make_purchase(self, card_id):
+        try:
+            cursor = self.conn.cursor()
+            
+            cursor.execute(
+                """
+                SELECT sc.product_code, p.price, sc.quantity
+                FROM shopping_cart sc
+                INNER JOIN products p ON sc.product_code = p.reference_code
+                WHERE sc.user_id = %s;
+                """, (self.user_id,)
+            )
+            cart_items = cursor.fetchall()
+            
+            if not cart_items:
+                messagebox.showerror("Error", "No hay productos en el carrito de compras")
+                return
+            
+            total_amount = sum(price * quantity for _, price, quantity in cart_items)
+            
+            sale_date = datetime.datetime.now()
+            cursor.execute(
+                """
+                INSERT INTO sales (user_id, sale_date, total_amount, card_id)
+                VALUES (%s, %s, %s, %s)
+                """, (self.user_id, sale_date, total_amount, card_id)
+            )
+            self.conn.commit()
+            sale_id = cursor.lastrowid
+            
+            for product_code, price, quantity in cart_items:
+                subtotal = price * quantity
+                
+                cursor.execute(
+                    """
+                    INSERT INTO sale_details (sale_id, product_code, quantity, subtotal)
+                    VALUES (%s, %s, %s, %s)
+                    """, (sale_id, product_code, quantity, subtotal)
+                )
+                
+                cursor.execute(
+                    """
+                    UPDATE products
+                    SET stock = stock - %s
+                    WHERE reference_code = %s
+                    """, (quantity, product_code)
+                )
+                
+            cursor.execute(
+                """
+                DELETE FROM shopping_cart
+                WHERE user_id = %s;
+                """, (self.user_id,)
+            )
+            
+            self.create_bill(sale_id)
+        
+        except Exception as e:
+            self.conn.rollback()
+            messagebox.showerror("Error", f"Error inesperado al realizar la compra: {e}")
+        finally:
+            cursor.close()
