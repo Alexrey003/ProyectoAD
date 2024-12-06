@@ -411,7 +411,7 @@ class CheckOut(Tk):
             c.drawString(100, height - 120, f"Dirección: {direction}")
             c.drawString(100, height - 140, f"Tarjeta: **** **** **** {card_number[-4:]}")
             
-            table = Table(products, colWidths=[20, 200, 50, 50])
+            table = Table(products, colWidths=[50, 220, 50, 50])
             table.wrapOn(c, width, height)
             table.drawOn(c, 50, height - 300)
             
