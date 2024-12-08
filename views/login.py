@@ -122,8 +122,8 @@ class LoginWindow(Tk):
                             bg="MediumPurple3",
                             activebackground="Slateblue1",
                             cursor='hand2',
-                            relief="solid"
-                            #command = Aqui se debe poner la accion de llevar a la página de olvidar contraseña
+                            relief="solid",
+                            command = self.forgot_password_window
                             )
         self.forget_btn.place(x=40, y=270)
         
@@ -238,3 +238,11 @@ class LoginWindow(Tk):
         finally:
             conn.close()
             cursor.close()
+        
+    def forgot_password_window(self):
+        from views.forgot_password import ForgotPasswordWindow
+        
+        self.destroy()
+        
+        forgot_password_window = ForgotPasswordWindow()
+        forgot_password_window.mainloop()
