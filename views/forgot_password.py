@@ -193,13 +193,6 @@ class ForgotPasswordWindow(Tk):
         reset_window.geometry("400x200")
         reset_window.configure(bg="MediumPurple4")
         
-        # frame_1 = Frame(
-        #     reset_window,
-        #     bg="gray20",
-        #     width=380,
-        #     height=180
-        # ).place(x=15, y=50)
-        
         new_password_label = Label(
             reset_window,
             text="Nueva contraseña:",

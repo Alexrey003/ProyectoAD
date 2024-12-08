@@ -12,7 +12,25 @@ from views.shopping_cart import ShoppingCartWindow
 class ProductsWindow(Tk):
     def __init__(self, user_id, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
         self.user_id = user_id
+        self.sidebar_visible = False
+        
+        self.conn = connect_to_database()
+        cursor = self.conn.cursor()
+            
+        cursor.execute("SELECT username FROM users WHERE user_id=%s", (self.user_id,))
+        result = cursor.fetchone()
+            
+        if result:
+            self.username_info = {
+                "username" : result[0] if result[0] else "...",
+            }
+        else:
+            self.username_info = {
+                "username" : "...",
+            }
+        cursor.close()
 #===================================================================================
         # Window properties
         self.title(APP_TITLE + "Ventana Productos v1.5") 
@@ -39,6 +57,19 @@ class ProductsWindow(Tk):
         )
         self.heading_title.pack()
         
+        self.profile_btn = Button(
+            self.heading_frame,
+            text="Mi perfil",
+            bg="MediumPurple3",
+            fg="white",
+            font=('Bahnscrift', 15, 'bold'),
+            relief="solid",
+            bd=0,
+            activebackground="SlateBlue1",
+            cursor="hand2",
+            command=self.toggle_menu
+        )
+        self.profile_btn.place(x=50, y=50)
 #============================================================================================
         # AGREGAR IMAGEN DE CARRITO DE COMPRAS
         # cart_image = ImageTk.PhotoImage(file='assets/shoppingcart.jpg')
@@ -82,21 +113,6 @@ class ProductsWindow(Tk):
             command= lambda: self.display_products(self.search_entry.get())
         )
         self.search_btn.place(x=1090, y=50)
-        
-#==============================================================================================
-        #PROFILE BUTTON
-        self.profile_btn = Button(
-            self.heading_frame,
-            text="Mi perfil",
-            bg="MediumPurple3",
-            fg="white",
-            font=('Bahnscrift', 15, 'bold'),
-            relief="solid",
-            bd=0,
-            activebackground="SlateBlue1",
-            cursor="hand2"
-        )
-        self.profile_btn.place(x=50, y=50)
         
 #==============================================================================================
         # FRAME WHERE THE PRODUCTS ARE SHOWN WITH A USEFUL SCROLLBAR
@@ -297,3 +313,129 @@ class ProductsWindow(Tk):
         self.destroy()
         cart_window = ShoppingCartWindow(self.user_id)
         cart_window.mainloop()
+        
+#================================================================================================
+    # METHODS FOR THE PROFILE SIDEBAR MENU
+    def toggle_menu(self):
+        def colapse_menu():
+            self.sidebar_frame.destroy()
+            
+        self.sidebar_frame = Frame(
+            self,
+            bg="gray18",
+        )
+        
+        self.window_height = 650
+        self.sidebar_frame.place(x=0, y=0, height=self.window_height, width=350)
+        
+        self.colapse_btn = Button(
+            self.sidebar_frame,
+            text="Cerrar Menu",
+            bg="gray18",
+            fg="white",
+            font=('Bahnscrift', 18),
+            relief="solid",
+            bd=0,
+            cursor="hand2",
+            activebackground="gray18",
+            command=colapse_menu
+        ).place(x=15, y=10)
+        
+        self.profile_label = Label(
+            self.sidebar_frame,
+            text=f"Bienvenido: {self.username_info['username']}",
+            bg="gray18",
+            fg="white",
+            font=('Bahnscrift', 14),
+            justify="center",
+            pady=20
+        ).place(x=15, y=50)
+        
+        self.profile_label_2 = Label(
+            self.sidebar_frame,
+            text="Aqui podras acceder a otras opciones.",
+            bg="gray18",
+            fg="white",
+            font=('Bahnscrift', 12),
+            justify="center",
+            pady=20
+        ).place(x=15, y=100)
+        
+        self.home_btn = Button(
+            self.sidebar_frame,
+            text="Productos",
+            bg="MediumPurple3",
+            fg="white",
+            font=('Bahnscrift', 15),
+            activebackground="SlateBlue1",
+            bd=0,
+            relief="solid",
+            cursor="hand2",
+            width=35,
+            # command= DOESNT NEED COMMAND CAUSE IS IN THE PRODUCTS PAGE
+        ).place(y=200)
+        
+        self.info_btn = Button(
+            self.sidebar_frame,
+            text="Información perfil",
+            bg="MediumPurple3",
+            fg="white",
+            font=('Bahnscrift', 15),
+            activebackground="SlateBlue1",
+            bd=0,
+            relief="solid",
+            cursor="hand2",
+            width=35,
+            command= self.open_profile_info_window
+        ).place(y=270)
+        
+        self.report_suggest_btn = Button(
+            self.sidebar_frame,
+            text="Reportar/Sugerir",
+            bg="MediumPurple3",
+            fg="white",
+            font=('Bahnscrift', 15),
+            activebackground="SlateBlue1",
+            bd=0,
+            relief="solid",
+            cursor="hand2",
+            width=35,
+            command=self.open_report_suggest_window
+        ).place(y=340)
+        
+        self.logout_btn = Button(
+            self.sidebar_frame,
+            text="Cerrar Sesión",
+            bg="MediumPurple3",
+            fg="white",
+            font=('Bahnscrift', 15),
+            activebackground="SlateBlue1",
+            bd=0,
+            relief="solid",
+            cursor="hand2",
+            width=35,
+            command=self.logout
+        ).place(y=410)
+        
+        
+    def open_report_suggest_window(self):
+        from views.reports import ReportAndSuggestionsWindow
+        self.destroy()
+        report_suggest_window = ReportAndSuggestionsWindow(self.user_id)
+        report_suggest_window.mainloop()
+
+    def open_profile_info_window(self):
+        from views.profile import ProfileWindow
+        self.destroy()
+        profile_window = ProfileWindow(self.user_id)
+        profile_window.mainloop()
+    def logout(self):
+        from views.login import LoginWindow
+        
+        logout_question = messagebox.askquestion("Cerrar Sesión.", "¿Esta seguro de querer salir de la sesión?")
+        if logout_question == "yes":
+            self.destroy()
+            login_window = LoginWindow()
+            login_window.mainloop()
+        else:
+            return

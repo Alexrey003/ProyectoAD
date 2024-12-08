@@ -223,7 +223,7 @@ class LoginWindow(Tk):
                 user_id, rol = self.resultado
                 if rol == 'admin':
                     # OPEN ADMIN WINDOW
-                    admin_window = admin.AdminWindow()
+                    admin_window = admin.AdminWindow(user_id=user_id)
                     self.destroy()
                     admin_window.mainloop()
                 elif rol == 'client':

@@ -8,10 +8,25 @@ from database.connection import connect_to_database
 #====================================================================================
 # ADMINISTRATION APPLICATION
 class AdminWindow(Tk):
-     def __init__(self, *args, **kwargs):
+     def __init__(self, user_id, *args, **kwargs):
           super().__init__(*args, **kwargs)
-          # self.user_id = user_id
+          self.user_id = user_id
           
+          self.conn = connect_to_database()
+          cursor = self.conn.cursor()
+          
+          cursor.execute("SELECT username FROM users WHERE user_id=%s", (self.user_id,))
+          result = cursor.fetchone()
+          
+          if result:
+               self.username_info = {
+                    "username" : result[0] if result[0] else "...",
+               }
+          else:
+               self.username_info = {
+                    "username" : "...",
+               }
+          cursor.close()
 #======================================================================================
           # WINDOW PROPERTIES 
           self.title(APP_TITLE + " - Modo administrador V1.5")
@@ -23,7 +38,7 @@ class AdminWindow(Tk):
           # ADMIN HEADING
           self.admin_heading = Label(
                self,
-               text="Modo administrador",
+               text=f"Administrador: {self.username_info['username']}",
                font=('Bahscrift', 15, 'bold'),
                bg='MediumPurple4',
                fg='White'
