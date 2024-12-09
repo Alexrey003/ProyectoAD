@@ -2,7 +2,6 @@
 # LIBRARIES
 from models.order import Card
 from utils.validations import (validate_card_number, validate_ccv, validate_cardholder_name, validate_expiration_date)
-import hashlib
 
 #================================================================
 def register_card(user_id, card_number, cardholder_name, expiration_date, ccv):

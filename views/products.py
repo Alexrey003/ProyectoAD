@@ -419,9 +419,9 @@ class ProductsWindow(Tk):
         
         
     def open_report_suggest_window(self):
-        from views.reports import ReportAndSuggestionsWindow
+        from views.reports import ReportAndSuggestionsUsersWindow
         self.destroy()
-        report_suggest_window = ReportAndSuggestionsWindow(self.user_id)
+        report_suggest_window = ReportAndSuggestionsUsersWindow(self.user_id)
         report_suggest_window.mainloop()
 
     def open_profile_info_window(self):

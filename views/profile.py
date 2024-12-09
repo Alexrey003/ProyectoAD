@@ -78,7 +78,8 @@ class ProfileWindow(Tk):
             relief="solid",
             bd=0,
             activebackground="SlateBlue1",
-            cursor="hand2"
+            cursor="hand2",
+            command=self.go_back
         )
         self.go_back_btn.place(x=700, y=50)
         

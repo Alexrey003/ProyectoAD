@@ -55,3 +55,12 @@ def validate_expiration_date(expiration_date):
         return False
 def validate_ccv(ccv):
     return bool(re.match(r"^\d{3}$", ccv))
+
+#=============================================================================
+# VALIDATIONS FOR REPORT AND SUGGEST PAGE
+
+def validate_report_title(title):
+    return isinstance(title, str) and title.strip() != ""
+
+def validate_report_description(description):
+    return isinstance(description, str) and description.strip() != ""
